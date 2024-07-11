@@ -1,0 +1,32 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+
+url = "https://en.wikipedia.org/wiki/List_of_active_Indian_military_aircraft"
+
+
+response = requests.get(url)
+soup = BeautifulSoup(response.text, 'html.parser')
+
+
+tables = soup.find_all('table', {'class': 'wikitable'})
+
+
+data = []
+for table in tables:
+    headers = [header.text.strip() for header in table.find_all('th')]
+    rows = table.find_all('tr')[1:]  # Skip the header row
+    for row in rows:
+        columns = row.find_all('td')
+        if len(columns) > 0:
+            row_data = [col.text.strip() for col in columns]
+            data.append(row_data)
+
+df = pd.DataFrame(data, columns=headers)
+
+
+csv_file_path = "indian_military_aircraft.csv"
+df.to_csv(csv_file_path, index=False)
+
+print(f"Scraped data saved to {csv_file_path}")
